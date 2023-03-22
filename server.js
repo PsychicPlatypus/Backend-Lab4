@@ -7,7 +7,6 @@ import bcrypt from "bcrypt";
 config();
 
 let currentToken = null;
-let currentUser = null;
 
 const app = express();
 app.set("view-engine", "ejs");
@@ -16,6 +15,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(
     cors({
         origin: "*",
+        methods: ["GET", "POST"],
     })
 );
 app.use(express.static("public"));
@@ -40,12 +40,12 @@ app.post("/identify", async function (req, res) {
                 {
                     userId: user.userID,
                     role: user.role,
+                    name: user.name,
                 },
                 process.env.TOKEN
             );
 
             currentToken = token;
-            currentUser = user;
             res.redirect(`/users/${user.userID}`);
         } else {
             res.redirect("/identify");
@@ -55,7 +55,11 @@ app.post("/identify", async function (req, res) {
     }
 });
 
-app.get("/users/:userId", async function (req, res) {
+app.get("/users/:userId", authenticateToken, async function (req, res) {
+    if (!["admin", req.user.userId].includes(req.params.userId)) {
+        res.redirect("/identify");
+        return;
+    }
     const user = await getUser(req.params.userId);
     res.render("userPage.ejs", {
         user: user,
@@ -88,7 +92,7 @@ app.get("/student2", authenticateToken, function (req, res) {
         res.redirect("/identify");
         return;
     }
-    res.render("student2.ejs", { user: currentUser });
+    res.render("student2.ejs", { user: req.user });
 });
 
 app.get("/teacher", authenticateToken, function (req, res) {
