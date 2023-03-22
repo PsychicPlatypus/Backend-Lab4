@@ -13,3 +13,33 @@ export function getUsers() {
         });
     });
 }
+
+export function getUser(userId) {
+    return new Promise((resolve, reject) => {
+        db.get("SELECT * FROM users WHERE userId = ?", userId, (err, row) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(row);
+            }
+        });
+    });
+}
+
+export function addUser(rawData, password) {
+    return new Promise((resolve, reject) => {
+        db.run(
+            "INSERT INTO users (userId, role, password) VALUES (?, ?, ?)",
+            rawData.userId,
+            rawData.role,
+            password,
+            (err) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            }
+        );
+    });
+}

@@ -1,6 +1,13 @@
 import express from "express";
 import cors from "cors";
-import { getUsers } from "./database.js";
+import { getUsers, getUser, addUser } from "./database.js";
+import { config } from "dotenv";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+config();
+
+let currentToken = null;
+let currentUser = null;
 
 const app = express();
 app.set("view-engine", "ejs");
@@ -13,9 +20,51 @@ app.use(
 );
 app.use(express.static("public"));
 
-app.get("/admin", async function (_req, res) {
-    const users = await getUsers();
+app.get("/", function (req, res) {
+    res.render("start.ejs");
+});
 
+app.get("/identify", function (req, res) {
+    res.render("identify.ejs");
+});
+
+app.post("/identify", async function (req, res) {
+    const user = await getUser(req.body.userId);
+    if (user == null) {
+        return res.redirect("/identify");
+    }
+
+    try {
+        if (await bcrypt.compare(req.body.password, user.password)) {
+            const token = jwt.sign(
+                {
+                    userId: user.userID,
+                    role: user.role,
+                },
+                process.env.TOKEN
+            );
+
+            currentToken = token;
+            currentUser = user;
+            res.redirect("/");
+        } else {
+            res.redirect("/identify");
+        }
+    } catch {
+        res.redirect("/identify");
+    }
+});
+
+app.get("/register", function (req, res) {
+    res.render("register.ejs");
+});
+
+app.get("/admin", authenticateToken, async function (req, res) {
+    if (req.user.role != "admin") {
+        res.redirect("/identify");
+        return;
+    }
+    const users = await getUsers();
     res.render("admin.ejs", { users: users });
 });
 
@@ -31,6 +80,23 @@ app.get("/teacher", function (req, res) {
     res.render("teacher.ejs");
 });
 
+app.post("/register", async function (req, res) {
+    const password = req.body.password;
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    addUser(req.body, hashedPassword);
+    res.redirect("/identify");
+});
+
 app.listen(5000, function () {
     console.log("Server started at port http://localhost:5000/");
 });
+
+function authenticateToken(req, res, next) {
+    if (currentToken == null) return res.sendStatus(401);
+    jwt.verify(currentToken, process.env.TOKEN, (err, user) => {
+        if (err) return res.sendStatus(403);
+        req.user = user;
+        next();
+    });
+}

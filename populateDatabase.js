@@ -1,12 +1,7 @@
 import sqlite3 from "sqlite3";
+import bcrypt from "bcrypt";
 
 const db = new sqlite3.Database("db.sqlite3");
-
-// ● Add 4 users to the table.
-// - User1, userID: id1, name: user1, role: student and password: password
-// - User2, userID: id2, name: user2, role: student and password: password2
-// - User3, userID: id3, name: user3, role: teacher and password: password3
-// - Admin, userID: admin, name: admin, role: admin and password: admin
 
 db.serialize(function () {
     db.run(
@@ -20,6 +15,12 @@ const data = [
     { userId: "id3", name: "user3", role: "teacher", password: "password3" },
     { userId: "admin", name: "admin", role: "admin", password: "admin" },
 ];
+
+//encrypt passwords
+data.forEach((user) => {
+    const hash = bcrypt.hashSync(user.password, 10);
+    user.password = hash;
+});
 
 db.serialize(function () {
     data.forEach((user) => {
