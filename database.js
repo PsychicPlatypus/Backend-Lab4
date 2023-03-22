@@ -29,8 +29,9 @@ export function getUser(userId) {
 export function addUser(rawData, password) {
     return new Promise((resolve, reject) => {
         db.run(
-            "INSERT INTO users (userId, role, password) VALUES (?, ?, ?)",
+            "INSERT INTO users (userId, name, role, password) VALUES (?, ?, ?, ?)",
             rawData.userId,
+            rawData.name,
             rawData.role,
             password,
             (err) => {

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>User Page</title>
+    <link href="/css/style.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+    <h1>
+        Profile For: <%= user.userID %>
+    </h1>
+    <p>Welcome, <%= user.name %>! This is your personal user page.</p>
+    <p>Your role is: <span style="background-color: gold;">
+            <%= user.role %>
+        </span> </p>
+    <a href="/"> Start Page </a> <br />
+    <a href="/admin"> Admin Page </a> <br />
+    <a href="/teacher"> Teacher Page</a> <br />
+    <a href="/student1"> Student 1 Page</a> <br />
+    <a href="/student2"> Student 2 Page</a>
+</body>
+
+</html>

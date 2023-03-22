@@ -20,7 +20,7 @@ app.use(
 );
 app.use(express.static("public"));
 
-app.get("/", function (req, res) {
+app.get("/", authenticateToken, function (req, res) {
     res.render("start.ejs");
 });
 
@@ -46,13 +46,20 @@ app.post("/identify", async function (req, res) {
 
             currentToken = token;
             currentUser = user;
-            res.redirect("/");
+            res.redirect(`/users/${user.userID}`);
         } else {
             res.redirect("/identify");
         }
     } catch {
         res.redirect("/identify");
     }
+});
+
+app.get("/users/:userId", async function (req, res) {
+    const user = await getUser(req.params.userId);
+    res.render("userPage.ejs", {
+        user: user,
+    });
 });
 
 app.get("/register", function (req, res) {
@@ -69,7 +76,7 @@ app.get("/admin", authenticateToken, async function (req, res) {
 });
 
 app.get("/student1", authenticateToken, function (req, res) {
-    if (!["teacher", "admin"].includes(req.user.role)) {
+    if (!["student1", "teacher", "admin"].includes(req.user.role)) {
         res.redirect("/identify");
         return;
     }
@@ -77,14 +84,18 @@ app.get("/student1", authenticateToken, function (req, res) {
 });
 
 app.get("/student2", authenticateToken, function (req, res) {
-    if (!["teacher", "admin"].includes(req.user.role)) {
+    if (!["student2", "teacher", "admin"].includes(req.user.role)) {
         res.redirect("/identify");
         return;
     }
     res.render("student2.ejs", { user: currentUser });
 });
 
-app.get("/teacher", function (req, res) {
+app.get("/teacher", authenticateToken, function (req, res) {
+    if (!["teacher", "admin"].includes(req.user.role)) {
+        res.redirect("/identify");
+        return;
+    }
     res.render("teacher.ejs");
 });
 
@@ -101,9 +112,9 @@ app.listen(5000, function () {
 });
 
 function authenticateToken(req, res, next) {
-    if (currentToken == null) return res.sendStatus(401);
+    if (currentToken == null) return res.redirect("/identify");
     jwt.verify(currentToken, process.env.TOKEN, (err, user) => {
-        if (err) return res.sendStatus(403);
+        if (err) return res.sendStatus(401);
         req.user = user;
         next();
     });

@@ -10,8 +10,8 @@ db.serialize(function () {
 });
 
 const data = [
-    { userId: "id1", name: "user1", role: "student", password: "password" },
-    { userId: "id2", name: "user2", role: "student", password: "password2" },
+    { userId: "id1", name: "user1", role: "student1", password: "password1" },
+    { userId: "id2", name: "user2", role: "student2", password: "password2" },
     { userId: "id3", name: "user3", role: "teacher", password: "password3" },
     { userId: "admin", name: "admin", role: "admin", password: "admin" },
 ];
