@@ -68,12 +68,20 @@ app.get("/admin", authenticateToken, async function (req, res) {
     res.render("admin.ejs", { users: users });
 });
 
-app.get("/student1", function (req, res) {
+app.get("/student1", authenticateToken, function (req, res) {
+    if (!["teacher", "admin"].includes(req.user.role)) {
+        res.redirect("/identify");
+        return;
+    }
     res.render("student1.ejs");
 });
 
-app.get("/student2", function (req, res) {
-    res.render("student2.ejs");
+app.get("/student2", authenticateToken, function (req, res) {
+    if (!["teacher", "admin"].includes(req.user.role)) {
+        res.redirect("/identify");
+        return;
+    }
+    res.render("student2.ejs", { user: currentUser });
 });
 
 app.get("/teacher", function (req, res) {
