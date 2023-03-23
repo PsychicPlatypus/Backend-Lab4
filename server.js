@@ -56,7 +56,7 @@ app.post("/identify", async function (req, res) {
 });
 
 app.get("/users/:userId", authenticateToken, async function (req, res) {
-    if (!["admin", req.user.userId].includes(req.params.userId)) {
+    if (!["admin", req.params.userId].includes(req.user.userId)) {
         res.redirect("/identify");
         return;
     }
